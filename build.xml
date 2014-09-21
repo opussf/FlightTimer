@@ -1,0 +1,81 @@
+<project name="FlightTimer" default="package">
+
+	<tstamp/>
+	<property environment="env"/>
+	<property name="build.number" value="${env.BUILD_NUMBER}"/>
+	<property file="build.properties"/>
+	<property name="version.number" value="${FlightTimer.version}.${build.number}" />
+	<property name="project.zip" value="${ant.project.name}_${version.number}.zip"/>
+
+	<property name="target.dir" location="target" />
+	<property name="build.dir" location="${target.dir}/build" />  <!-- work directory -->
+	<property name="dest.dir" location="${target.dir}"/>
+
+	<target name="clean" description="Cleans old builds">
+		<delete dir="${target.dir}" />
+	</target>
+
+	<target name="package" depends="test" description="package the code. create ${project.zip}">
+		<mkdir  dir="${build.dir}/${ant.project.name}"/>
+		<copy 	todir="${build.dir}/${ant.project.name}">
+			<fileset dir="src">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="*.xml"/>
+				<include name="Readme.txt"/>
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${version.number}"/>
+			</filterset>
+		</copy>
+		<zip 	destfile="${dest.dir}/${project.zip}"
+				basedir="${build.dir}"
+				includes="${ant.project.name}/**"/>
+		<delete dir="${build.dir}" verbose="true"/>
+		<checksum file="${dest.dir}/${project.zip}"
+				  property="zip.md5" />
+		<echo message="${zip.md5}" />
+	</target>
+
+	<target name="wow" description="copy files directly to WoW for testing">
+		<property name="interface.dir" value="/Applications/World of Warcraft/Interface/AddOns/"/>
+		<property name="test.dir" value="${interface.dir}/${ant.project.name}"/>
+		
+		<mkdir 	dir="${test.dir}"/>
+		<copy 	todir="${test.dir}" verbose="true">
+			<fileset dir="src">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="*.xml"/>
+				<include name="Readme.txt"/>
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${version.number}"/>
+			</filterset>
+		</copy>
+	</target>
+
+	<target name="test" description="run unit tests">
+		<mkdir dir="${target.dir}"/>
+		<exec executable="lua" dir="test">
+			<arg value="test.lua"/>
+		</exec>
+	</target>
+	
+	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
+		<copy todir="${deploy.dir}">
+			<fileset dir="dest">
+				<include name="*.zip"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy.check">
+		<condition property="deploy.run">
+			<and>
+				<available file="${deploy.from}" type="dir"/>
+			</and>
+		</condition>
+	</target>
+
+</project>
