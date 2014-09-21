@@ -1,0 +1,11 @@
+## Interface: 50400
+## Title: FlightTimer
+## Notes: Times taxi flights
+## Author: sistersally of hyjal
+## Version: @VERSION@
+## Description: Shows progress bar during taxi flight, gives warning before landing
+## SavedVariables: FlightTimer_options FlightTimer_flightTimes
+## SavedVariablesPerCharacter:
+
+FlightTimer.lua
+FlightTimer.xml

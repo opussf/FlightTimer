@@ -1,0 +1,57 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+	<Script file="FlightTimer.lua"/>
+	<!-- Version 1.4 -->
+	<Frame name="FlightTimerFrame" frameStrata="BACKGROUND" toplevel="true" enableMouse="false" movable="false" parent="UIParent">
+		<Size>
+			<AbsDimension x="600" y="34"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Frames>
+			<StatusBar name="FlightTimer_FlightTimeBar" inherits="TextStatusBar">
+				<Size>
+					<AbsDimension x="590" y="20" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOP" relativeTo="FlightTimerFrame" relativePoint="TOP">
+						<Offset>
+							<AbsDimension x="5" y="-7" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="LOW">
+						<FontString name="FlightTimer_FlightTimeBarText" inherits="GameFontNormal" wraponspaces="false">
+							<Anchors>
+								<Anchor point="CENTER">
+								</Anchor>
+							</Anchors>
+							<Color r="1" g="1" b="1"/>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad> <!-- artwork -->
+						FlightTimer_FlightTimeBar:SetFrameLevel( 0 );
+						FlightTimer_FlightTimeBar:SetAlpha(1.0)
+					</OnLoad>
+				</Scripts>
+				<BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
+				<BarColor r="0.5" g="0" b="0"/>
+			</StatusBar>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				FlightTimer.OnLoad();
+			</OnLoad>
+			<OnEvent>
+				FlightTimer[event]();
+			</OnEvent>
+			<OnUpdate>
+				FlightTimer.OnUpdate();
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+</Ui>
