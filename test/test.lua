@@ -11,7 +11,7 @@ addonData = {
 
 require "wowTest"
 
-test.outFileName = "../target/testOut.xml"
+test.outFileName = "testOut.xml"
 
 -- from XML
 FlightTimerFrame = Frame

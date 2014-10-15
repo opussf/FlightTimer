@@ -1,6 +1,6 @@
-## Interface: 50400
+## Interface: @INTERFACE@
 ## Title: FlightTimer
-## Notes: Times taxi flights
+## Notes: Times taxi flights @VERSION@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Shows progress bar during taxi flight, gives warning before landing
