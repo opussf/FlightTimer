@@ -119,9 +119,9 @@ function CreateFrame( frameType, frameName, parentFrame, inheritFrame )
 end
 
 function CreateFontString(name,...)
-	print("Creating new FontString: "..name)
+	--print("Creating new FontString: "..name)
 	FontString = {}
-	print("1")
+	--	print("1")
 	for k,v in pairs(Frame) do
 		FontString[k] = v
 	end
@@ -129,7 +129,7 @@ function CreateFontString(name,...)
 	FontString["SetText"] = function(self,text) self.text=text; end
 	FontString["GetText"] = function(self) return(self.text); end
 	FontString.name=name
-	print("FontString made?")
+	--print("FontString made?")
 	return FontString
 end
 
@@ -377,13 +377,13 @@ function TaxiNodeCost( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeCost
 	return TaxiNodes[nodeId].cost
 end
-function TaxiNodeName( nodeId )
-	-- http://www.wowwiki.com/API_TaxiNodeName
-	return TaxiNodes[nodeId].name
-end
 function TaxiNodeGetType( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeGetType
 	return TaxiNodes[nodeId].type
+end
+function TaxiNodeName( nodeId )
+	-- http://www.wowwiki.com/API_TaxiNodeName
+	return TaxiNodes[nodeId].name
 end
 function UnitClass( who )
 	local unitClasses = {
