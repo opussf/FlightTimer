@@ -13,8 +13,12 @@ local itemDB = {
 }
 
 -- simulate an internal inventory
---myInventory = { ["9999"] = 52, }
+-- myInventory = { ["9999"] = 52, }
+		-- myInventory = { ["9999"] = {52, 0, 1}, }
+		-- myInventory = { ["<itemID"] = {<count>, <bagID>, <slotID>}, }
 myInventory = {}
+-- bagInfo is the info about the containers themselves
+-- bagInfo = {<size>, <type>}
 bagInfo = {
 	[0] = {16, 0},
 }
@@ -50,6 +54,8 @@ Items = {
 	["23787"] = {["name"] = "Felsteel Stabilizer", ["link"] = "|cffffff|Hitem:23787|h[Felsteel Stabilizer]|h|r", ["texture"] = ""},
 	["34061"] = {["name"] = "Turbo-Charged Flying Machine", ["link"] = "|cff9d9d9d|Hitem:34061:0:0:0:0:0:0:0:80:0:0|h[Turbo-Charged Flying Machine]|h|r", ["texture"] = ""},
 	["34249"] = {["name"] = "Hula Girl Doll", ["link"] = "|cffffff|Hitem:34249|h[Hula Girl Doll]|h|r", ["texture"] = ""},
+	["45579"] = {["name"] = "Darnassus Tabard", ["link"] = "|cffffffff|Hitem:45579:0:0:0:0:0:0:0:14:258:0:0:0|h[Darnassus Tabard]|h|r", ["texture"] = ""},
+	["45580"] = {["name"] = "Exodar Tabard", ["link"] = "|cffffffff|Hitem:45580:0:0:0:0:0:0:0:14:258:0:0:0|h[Exodar Tabard]|h|r", ["texture"] = ""},
 	["49916"] = {["name"] = "Lovely Charm Bracelet", ["link"] = "|cff9d9d9d|Hitem:49916:0:0:0:0:0:0:0:80:0:0|h[Lovely Charm Bracelet]|h|r", ["texture"] = ""},
 	["49927"] = {["name"] = "Love Token", ["link"] = "|cff9d9d9d|Hitem:49927:0:0:0:0:0:0:0:80:0:0|h[Love Token]|h|r", ["texture"] = ""},
 	["74661"] = {["name"] = "Black Pepper", ["link"] = "|cffffffff|Hitem:74661:0:0:0:0:0:0:0:90:0:0|h[Black Pepper]|h|r", ["texture"] = ""},
@@ -83,6 +89,10 @@ TaxiNodes = {
 	{["name"] = "Ironforge", ["type"] = "NONE", ["hops"] = 1, ["cost"]=1000},
 }
 Currencies = {
+	["390"] = { ["name"] = "Conquest", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	["392"] = { ["name"] = "Honor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	["395"] = { ["name"] = "Justice",  ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	["396"] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
 	["402"] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
 	["703"] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
 }
@@ -115,6 +125,70 @@ EquipmentSets = {
 }
 -- WowToken
 TokenPrice = 123456 -- 12G 34S 45C
+--- Factions
+globals.FACTION_STANDING_LABEL1 = "Hated"
+globals.FACTION_STANDING_LABEL2 = "Hostile"
+globals.FACTION_STANDING_LABEL3 = "Unfriendly"
+globals.FACTION_STANDING_LABEL4 = "Neutral"
+globals.FACTION_STANDING_LABEL5 = "Friendly"
+globals.FACTION_STANDING_LABEL6 = "Honored"
+globals.FACTION_STANDING_LABEL7 = "Revered"
+globals.FACTION_STANDING_LABEL8 = "Exalted"
+
+--			TT.fName, TT.fDescription, TT.fStandingId, TT.fBottomValue, TT.fTopValue, TT.fEarnedValue, TT.fAtWarWith,
+--					TT.fCanToggleAtWar, TT.fIsHeader, TT.fIsCollapsed, TT.fIsWatched, TT.isChild, TT.factionID,
+--					TT.hasBonusRepGain, TT.canBeLFGBonus = GetFactionInfo(factionIndex);
+FactionInfo = {
+	{ ["name"] = "Classic", ["description"] = "", ["standingID"] = 4, ["bottomValue"] = 0, ["topValue"] = 3000, ["earnedValue"] = 0,
+		["atWarWith"] = false, ["canToggleAtWar"] = true, ["isHeader"] = true, ["isCollapsed"] = false, ["hasRep"] = false,
+		["isWatched"] = false, ["isChild"] = false, ["factionID"] = 1118, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	},
+	{ ["name"] = "Darkmoon Faire", ["description"] = "description and stuff",
+		["standingID"] = 5, ["bottomValue"] = 3000, ["topValue"] = 9000, ["earnedValue"] = 7575,
+		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = false, ["isCollapsed"] = false, ["hasRep"] = false,
+		["isWatched"] = false, ["isChild"] = true, ["factionID"] = 909, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	},
+	{ ["name"] = "Alliance", ["description"] = "", ["standingID"] = 6, ["bottomValue"] = 9000, ["topValue"] = 21000, ["earnedValue"] = 10390,
+		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = true, ["isCollapsed"] = false, ["hasRep"] = false,
+		["isWatched"] = false, ["isChild"] = false, ["factionID"] = 469, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	},
+	{ ["name"] = "Stormwind", ["description"] = "", ["standingID"] = 7, ["bottomValue"] = 21000, ["topValue"] = 42000, ["earnedValue"] = 33397,
+		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = false, ["isCollapsed"] = false, ["hasRep"] = false,
+		["isWatched"] = true, ["isChild"] = true, ["factionID"] = 72, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	},
+}
+--Auras
+-- IIRC (Look this up) Auras are index based, use an index based system
+-- ["unit"] = { [1] = { ["Fishing"] = true }}
+UnitAuras = {}
+--UnitAuras = {["player"] = { { ["Fishing"] = true } } }
+-- 'support' code for setting / clearing auras
+function wowSetAura( unit, auraName )
+	if (UnitAuras[unit]) then
+		for i, auras in pairs( UnitAuras[unit] ) do
+			if ( auras[auraName] ) then
+				return
+			end
+		end
+		table.insert( UnitAuras[unit], { { [auraName] = true } } )
+	else  -- unknown unit
+		UnitAuras[unit] = { { [auraName] = true } }
+	end
+end
+function wowClearAura( unit, auraName )
+	if UnitAuras[unit] then
+		for i, aura in pairs( UnitAuras[unit] ) do
+			for aname in pairs( aura ) do
+				if (aname == auraName) then
+					UnitAuras[unit][i] = nil
+				end
+			end
+		end
+		if (#UnitAuras[unit] == 0) then
+			UnitAuras[unit] = nil
+		end
+	end
+end
 
 -- WOW's function renames
 strmatch = string.match
@@ -127,6 +201,41 @@ max = math.max
 min = math.min
 random = math.random
 tinsert = table.insert
+
+bit = {}
+function bit.lshift( x, by )
+	return x * 2 ^ by
+end
+function bit.rshift( x, by )
+	return math.floor( x / 2 ^ by )
+end
+function bit.bor( a, b )  -- bitwise or
+	local p,c=1,0
+	while a+b>0 do
+		local ra,rb=a%2,b%2
+		if ra+rb>0 then c=c+p end
+		a,b,p=(a-ra)/2,(b-rb)/2,p*2
+	end
+	return c
+end
+function bit.band( a, b ) -- bitwise and
+	local p,c=1,0
+	while a>0 and b>0 do
+		local ra,rb=a%2,b%2
+		if ra+rb>1 then c=c+p end
+		a,b,p=(a-ra)/2,(b-rb)/2,p*2
+	end
+	return c
+end
+function bit.bnot( n )  -- bitwise not
+	local p,c=1,0
+	while n>0 do
+		local r=n%2
+		if r<1 then c=c+p end
+		n,p=(n-r)/2,p*2
+	end
+	return c
+end
 
 -- WOW's functions
 function getglobal( globalStr )
@@ -162,9 +271,9 @@ Frame = {
 		["Hide"] = function() end,
 		["Show"] = function() end,
 		["IsShown"] = function() return(true) end,
-		["RegisterEvent"] = function(event) Frame.Events.event = true; end,
+		["RegisterEvent"] = function(self, event) Frame.Events[event] = true; end,
 		["SetPoint"] = function() end,
-		["UnregisterEvent"] = function(event) Frame.Events.event = nil; end,
+		["UnregisterEvent"] = function(self, event) Frame.Events[event] = nil; end,
 		["GetName"] = function(self) return self.framename end,
 		["SetFrameStrata"] = function() end,
 		["SetWidth"] = function(self, value) self.width = value; end,
@@ -350,6 +459,14 @@ function EquipItemByName( itemIn, slotIDIn )
 		end
 	end
 end
+function ExpandFactionHeader( index )
+	-- http://wowprogramming.com/docs/api/ExpandFactionHeader
+	if FactionInfo[index] then
+		if FactionInfo[index].isHeader then
+			FactionInfo[index].isCollapsed = false
+		end
+	end
+end
 function GetAccountExpansionLevel()
 	-- http://www.wowwiki.com/API_GetAccountExpansionLevel
 	-- returns 0 to 4 (5)
@@ -416,12 +533,14 @@ function GetCoinTextureString( copperIn, fontHeight )
 				(copper and copper.."C"))
 	end
 end
+function GetContainerItemLink( bagId, slotId )
+end
 function GetContainerNumFreeSlots( bagId )
 	-- http://www.wowwiki.com/API_GetContainerNumFreeSlots
 	-- http://www.wowwiki.com/BagType
 	-- returns numberOfFreeSlots, BagType
 	-- BagType should be 0
-	-- TODO: For API, what should it return if no bag is equipped?
+	-- TODO: For API, what should it return if no bag is equipped?  (it should not be nil it seems)
 	-- ^^ Note, the backpack(0) is ALWAYS equipped.
 	if bagInfo[bagId] then
 		return unpack(bagInfo[bagId])
@@ -429,15 +548,27 @@ function GetContainerNumFreeSlots( bagId )
 		return 0, 0
 	end
 end
-function GetCurrencyInfo( id ) -- id is string
+function GetContainerNumSlots( bagId )
+	-- http://wowwiki.wikia.com/wiki/API_GetContainerNumSlots
+	-- returns the number of slots in the bag, or 0 if no bag
+	if bagInfo[bagId] then
+		return bagInfo[bagId][1]
+	else
+		return 0
+	end
+end
+function GetCurrencyInfo( id ) -- id is integer, currencyLink, currencyString
+	-- integer, link, "currency:###"
 	-- http://wowprogramming.com/docs/api/GetCurrencyInfo
 	-- returns name, amount, texturePath, earnedThisWeek, weeklyMax, totalMax, isDiscovered
+	id = tostring(id)
 	if Currencies[id] then
 		local c = Currencies[id]
 		return c["name"], (myCurrencies[id] or 0), "", 0, c["weeklyMax"], c["totalMax"], true
 	end
 end
 function GetCurrencyLink( id )
+	id = tostring(id)
 	if Currencies[id] then
 		return Currencies[id].link
 	end
@@ -468,6 +599,15 @@ function GetEquipmentSetInfoByName( nameIn )
 			return EquipmentSets[i].icon, i-1
 		end
 	end
+end
+function GetFactionInfo( index )
+	-- http://wowprogramming.com/docs/api/GetFactionInfo
+	local f = FactionInfo[ index ]
+	return f.name, f.description, f.standingID, f.bottomValue, f.topValue, f.earnedValue, f.atWarWith, f.canToggleAtWar,
+			f.isHeader, f.isCollapsed, f.hasRep, f.isWatched, f.isChild, f.factionID, f.hasBonusRepGain, f.canBeLFGBonus
+end
+function GetHaste()
+	return 15.42345
 end
 function GetInventoryItemID( unitID, invSlot )
 	-- http://www.wowwiki.com/API_GetInventoryItemID
@@ -510,6 +650,9 @@ function GetItemInfo( itemID )
 	if Items[itemID] then
 		return Items[itemID].name, Items[itemID].link
 	end
+end
+function GetMastery()
+	return 21.3572
 end
 function GetMerchantItemCostInfo( index )
 	-- returns count of alterate items needed to purchase an item
@@ -572,6 +715,14 @@ function GetNumEquipmentSets()
 	-- http://www.wowwiki.com/API_GetNumEquipmentSets
 	-- Returns 0,MAX_NUM_EQUIPMENT_SETS
 	return #EquipmentSets
+end
+function GetNumFactions()
+	-- returns number of factions
+	-- I believe that this should return the correct number that are SHOWN.
+	-- It should then process the info the describes if it is collapsed or not.
+	local count = 0
+	for _ in pairs(FactionInfo) do count = count + 1 end
+	return count
 end
 function GetNumGroupMembers()
 	-- http://www.wowwiki.com/API_GetNumGroupMembers
@@ -668,6 +819,10 @@ function IsInGuild()
 	-- 1, nil boolean return of being in guild
 	return (myGuild and myGuild.name) and 1 or nil
 end
+function IsInInstance()
+	-- returns 1nil
+	return currentInstance and true or nil
+end
 function IsInRaid()
 	-- http://www.wowwiki.com/API_IsInRaid
 	-- 1, nill boolean return of being in raid
@@ -755,7 +910,7 @@ function PutItemInBag( bagNum )
 end
 function SecondsToTime( secondsIn, noSeconds, notAbbreviated, maxCount )
 	-- http://www.wowwiki.com/API_SecondsToTime
-	-- formats seconds to a readable time
+	-- formats seconds to a readable time  -- WoW omits seconds if 0 even if noSeconds is false
 	-- secondsIn: number of seconds to work with
 	-- noSeconds: True to ommit seconds display (optional - default: false)
 	-- notAbbreviated: True to use full unit text, short text otherwise (optional - default: false)
@@ -779,7 +934,7 @@ function SecondsToTime( secondsIn, noSeconds, notAbbreviated, maxCount )
 			{ "%i Min", "%i Minutes", minutes},
 			{ "%i Sec", "%i Seconds", seconds},
 		}
-	if noSeconds then  -- remove the seconds format if no seconds
+	if noSeconds or seconds == 0 then  -- remove the seconds format if no seconds
 		table.remove(formats, 4)
 	end
 
@@ -811,11 +966,30 @@ function TaxiNodeGetType( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeGetType
 	return TaxiNodes[nodeId].type
 end
+function UnitAura( unit, auraName )
+	-- @TODO: Look this up to get a better idea of what this function does.
+	-- Returns True or nil
+	if (UnitAuras[unit]) then
+		for i, auras in pairs(UnitAuras[unit]) do
+			if auras[auraName] then
+				return true
+			end
+		end
+	end
+	--print("UnitAura did not find "..auraName)
+end
 function UnitClass( who )
 	local unitClasses = {
 		["player"] = "Warlock",
 	}
 	return unitClasses[who]
+end
+function UnitHealthMax( who )
+	-- http://wowwiki.wikia.com/wiki/API_UnitHealth
+	local unitHealth = {
+		["player"] = {["current"] = 100000, ["max"] = 123456},
+	}
+	return unitHealth[who].max
 end
 function UnitFactionGroup( who )
 	-- http://www.wowwiki.com/API_UnitFactionGroup
@@ -824,11 +998,19 @@ function UnitFactionGroup( who )
 	}
 	return unpack( unitFactions[who] )
 end
+function UnitIsDeadOrGhost( who )
+
+end
 function UnitName( who )
 	local unitNames = {
 		["player"] = "testPlayer",
 	}
 	return unitNames[who]
+end
+function UnitPowerMax( who, powerType )
+	-- http://wowwiki.wikia.com/wiki/API_UnitPowerMax
+	-- VERY simplified version of this function for now.
+	return 12345
 end
 function UnitRace( who )
 	local unitRaces = {
