@@ -161,7 +161,7 @@ function FlightTimer.OnUpdate(arg1)
 				ftc = ftc + 1
 			end
 			local fta = math.floor( fts / ftc )
-			FlightTimer.Debug( "Average FT is "..SecondsToTime( fta ).." for "..ftc.." flights." )
+			FlightTimer.Debug( "Average FT is "..SecondsToTime( fta ) )
 			-- prune old flight times
 			if( ftc > 10 ) then
 				table.sort( ftkeys )
