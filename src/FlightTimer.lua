@@ -194,15 +194,15 @@ function FlightTimer.TakeTaxiNode( index, ... )  -- hooked into when a Taxi is t
 		FlightTimer.Debug("Adding >"..FlightTimer.endNode.."< to endNodes.");
 		FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode] = {};
 		FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime = 0;
-		FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights = 0;
 	end
 
-	if FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights then
+	if not FlightTimer.flightStart then
 		FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights =
-				FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights + 1;
-	else
-		FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights = 1;
+				FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights
+					and FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flights + 1
+					or 1
 	end
+
 	FlightTimer.flightStart = time();
 	FlightTimer.flightETA = FlightTimer.flightStart +
 			FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime;

@@ -287,6 +287,12 @@ function bit.bnot( n )  -- bitwise not
 	return c
 end
 
+-- Sound Kit
+SOUNDKIT = {
+	ALARM_CLOCK_WARNING_1 = 18871,
+}
+
+
 -- WOW's functions
 function getglobal( globalStr )
 	-- set the globals table to return what is needed from the 'globals'
@@ -338,10 +344,11 @@ ITEM_BIND_ON_PICKUP="Binds when picked up"
 
 -- WOW's frames
 Frame = {
+		["__isShown"] = true,
 		["Events"] = {},
-		["Hide"] = function() end,
-		["Show"] = function() end,
-		["IsShown"] = function() return(true) end,
+		["Hide"] = function( self ) self.__isShown = false; end,
+		["Show"] = function( self ) self.__isShown = true; end,
+		["IsShown"] = function( self ) return( self.__isShown ) end,
 		["RegisterEvent"] = function(self, event) self.Events[event] = true; end,
 		["SetPoint"] = function() end,
 		["UnregisterEvent"] = function(self, event) self.Events[event] = nil; end,
@@ -354,9 +361,11 @@ Frame = {
 		["SetMinMaxValues"] = function() end,
 		["SetValue"] = function() end,
 		["SetStatusBarColor"] = function() end,
-
+		["SetScript"] = function() end,
+		["SetAttribute"] = function() end,
 }
 FrameGameTooltip = {
+		["HookScript"] = function( self, callback ) end,
 		["GetName"] = function(self) return self.name end,
 		["SetOwner"] = function(self, newOwner) end, -- this is only for tooltip frames...
 		["ClearLines"] = function(self) end, -- this is only for tooltip frames...
@@ -366,6 +375,44 @@ FrameGameTooltip = {
 			_G[frameName.."TextLeft3"] = CreateFontString(frameName.."TextLeft3")
 			_G[frameName.."TextLeft4"] = CreateFontString(frameName.."TextLeft4")
 		end,
+}
+Units = {
+	["player"] = {
+		["class"] = "Warlock",
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "testPlayer",
+		["race"] = "Human",
+		["realm"] = "testRealm",
+		["realmRelationship"] = 1,  -- same realm
+		["sex"] = 3,
+		["currentHealth"] = 100000,
+		["maxHealth"] = 123456,
+	},
+	["sameRealmUnit"] = {
+		["class"] = "Warrior",
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "sameRealmPlayer",
+		["race"] = "Gnome",
+		["realm"] = "testPlayer",
+		["realmRelationship"] = 1,
+		["sex"] = 2,
+	},
+	["coalescedRealmUnit"] = {
+		["class"] = "Monk",
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "coalescedUnit",
+		["race"] = "Pandarian",
+		["realm"] = "coalescedRealm",
+		["realmRelationship"] = 2,
+	},
+	["connectedRealmUnit"] = {
+		["class"] = "Mage",
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "connectedUnit",
+		["realm"] = "connectedRealm",
+		["realmRelationship"] = 3,
+	},
+
 }
 function CreateFrame( frameType, frameName, parentFrame, inheritFrame )
 --	print("CreateFrame: needing a new frame of type: "..(frameType or "nil"))
@@ -473,6 +520,15 @@ function CloseMail()
 	-- @TODO - Write this
 end
 ]]
+function CombatLogGetCurrentEventInfo()
+	-- return much the same info as used to be passed to the LOG_UNFILTERD event
+	-- set CombatLogCurrentEventInfo = {} to return specific data.
+	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
+	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
+
+	return unpack( CombatLogCurrentEventInfo )
+
+end
 function CombatTextSetActiveUnit( who )
 	-- http://www.wowwiki.com/API_CombatTextSetActiveUnit
 	-- @TODO - Write this
@@ -893,6 +949,11 @@ end
 --	for _ in pairs( TradeSkillItems ) do count = count + 1 end
 --	return count
 --end
+function GetPlayerInfoByGUID( playerGUID )
+	-- http://wowprogramming.com/docs/api/GetPlayerInfoByGUID
+	-- localClass, englishClass, localRace, englishRace, gender, name, realm = GetPlayerInfoByGUID( playerGUID )
+	return "Warlock", "Warlock", "Human", "Human", 3, "testPlayer", "testRealm"
+end
 function GetRaidRosterInfo( raidIndex )
 	-- http://www.wowwiki.com/API_GetRaidRosterInfo
 	-- returns name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
@@ -961,6 +1022,10 @@ function HasNewMail()
 end
 ]]
 function InterfaceOptionsFrame_OpenToCategory()
+end
+function IsInGroup( groupType )
+	-- http://wowprogramming.com/docs/api/IsInGroup
+	return true
 end
 function IsInGuild()
 	-- http://www.wowwiki.com/API_IsInGuild
@@ -1130,6 +1195,9 @@ function SendChatMessage( msg, chatType, language, channel )
 	-- returns nil
 	-- @TODO: Expand this
 end
+function BNSendWhisper( id, msg )
+	-- @TODO: Expand this
+end
 function TaxiNodeCost( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeCost
 	return TaxiNodes[nodeId].cost
@@ -1155,33 +1223,21 @@ function UnitAura( unit, auraName )
 	--print("UnitAura did not find "..auraName)
 end
 function UnitClass( who )
-	local unitClasses = {
-		["player"] = "Warlock",
-	}
-	return unitClasses[who]
+	return Units[who].class
 end
 function UnitHealthMax( who )
 	-- http://wowwiki.wikia.com/wiki/API_UnitHealth
-	local unitHealth = {
-		["player"] = {["current"] = 100000, ["max"] = 123456},
-	}
-	return unitHealth[who].max
+	return Units[who].maxHealth
 end
 function UnitFactionGroup( who )
 	-- http://www.wowwiki.com/API_UnitFactionGroup
-	local unitFactions = {
-		["player"] = {"Alliance", "Alliance"}
-	}
-	return unpack( unitFactions[who] )
+	return unpack( Units[who].faction )
 end
 function UnitIsDeadOrGhost( who )
 
 end
 function UnitName( who )
-	local unitNames = {
-		["player"] = "testPlayer",
-	}
-	return unitNames[who]
+	return Units[who].name
 end
 function UnitPowerMax( who, powerType )
 	-- http://wowwiki.wikia.com/wiki/API_UnitPowerMax
@@ -1189,17 +1245,19 @@ function UnitPowerMax( who, powerType )
 	return 12345
 end
 function UnitRace( who )
-	local unitRaces = {
-		["player"] = "Human",
-	}
-	return unitRaces[who]
+	return Units[who].race
+end
+function UnitRealmRelationship( who )
+	-- https://wow.gamepedia.com/API_UnitRealmRelationship
+	-- returns
+	-- 1 = same realm
+	-- 2 = coalesced and unconnected realms
+	-- 3 = connected realms
+	return Units[who].realmRelationship
 end
 function UnitSex( who )
 	-- 1 = unknown, 2 = Male, 3 = Female
-	local unitSex = {
-		["player"] = 3,
-	}
-	return unitSex[who]
+	return Units[who].sex
 end
 ---------  C_WowTokenPublic
 C_WowTokenPublic = {}
@@ -1251,3 +1309,9 @@ end
 
 --/script for k,v in pairs(C_TradeSkillUI.GetAllRecipeIDs()) do print(k..":"..v) end
 --/script for k,v in pairs(C_TradeSkillUI.GetAllRecipeIDs()) do print(k..":"..v) end
+
+----------
+
+function IsQuestFlaggedCompleted( questID )
+	return nil
+end

@@ -24,10 +24,13 @@ require "FlightTimer"
 
 function test.before()
 	FlightTimer.OnLoad()
+	FlightTimer.flightStart = nil
+	--print( "----> Before" )
 end
 function test.after()
 	FlightTimer.debug = nil
 	FlightTimer_flightTimes = {}  -- force reset
+	--print( "after <----" )
 end
 
 function test.testDebug_ToggleOn()
@@ -73,9 +76,8 @@ function test.testTakeTaxiNode_dataStructureCreated_countIs1()
 	assertEquals( 1, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flights )
 end
 function test.testTakeTaxiNode_dataStructureCreated_countIs2()
-	-- Not really a valid sim, but it works
+	FlightTimer_flightTimes["Stormwind"] = { ["Rebel Camp"] = { ["flights"] = 1, ["flightTime"] = 323 } }
 	FlightTimer.TAXIMAP_OPENED()
-	FlightTimer.TakeTaxiNode(2)
 	FlightTimer.TakeTaxiNode(2)
 	assertEquals( 2, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flights )
 end
@@ -89,7 +91,20 @@ function test.testTakeTaxiNode_flightTime_SetZero()
 	FlightTimer.TakeTaxiNode(2)
 	assertEquals( 0, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTime ) -- make sure it is set
 end
-
-
+function test.notestPruneFlightTimes_01()
+	-- history
+	FlightTimer.debug = true
+	FlightTimer_flightTimes["Stormwind"] = {
+			["Rebel Camp"] = {
+				["flights"] = 120,
+				["flightTime"] = 99,
+				["flightTimes"] = { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 }
+			}
+		}
+	FlightTimer.TAXIMAP_OPENED()
+	FlightTimer.TakeTaxiNode(2)
+	print( UnitOnTaxi( "player" ) )  -- ROFL..  I never actually got to testing this part!
+	assertEquals( 10, #FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes )
+end
 
 test.run()
