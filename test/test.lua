@@ -135,9 +135,7 @@ function test.testPruneFlightTimes_02()
 	FlightTimer.TakeTaxiNode(2)
 	FlightTimer.flightStart = time() - 135
 	FlightTimer.OnUpdate()
-	for k,v in pairs( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes ) do
-		print( "--"..k..", "..v)
-	end
+
 	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[1635210000], "5 seconds should be removed" )
 	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[1635038053], "50 seconds should be removed" )
 	assertEquals( 130, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[2], "Oldest should not be deleted." )
