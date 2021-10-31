@@ -25,6 +25,7 @@ require "FlightTimer"
 function test.before()
 	FlightTimer.OnLoad()
 	FlightTimer.flightStart = nil
+	FlightTimer.lastUpdate = time() - 5
 	--print( "----> Before" )
 end
 function test.after()
@@ -32,7 +33,6 @@ function test.after()
 	FlightTimer_flightTimes = {}  -- force reset
 	--print( "after <----" )
 end
-
 function test.testDebug_ToggleOn()
 	FlightTimer.Command("debug")
 	assertTrue( FlightTimer.debug, "Should the toggled on" )
@@ -91,20 +91,57 @@ function test.testTakeTaxiNode_flightTime_SetZero()
 	FlightTimer.TakeTaxiNode(2)
 	assertEquals( 0, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTime ) -- make sure it is set
 end
-function test.notestPruneFlightTimes_01()
+
+function test.testPruneFlightTimes_01()
 	-- history
 	FlightTimer.debug = true
 	FlightTimer_flightTimes["Stormwind"] = {
 			["Rebel Camp"] = {
 				["flights"] = 120,
 				["flightTime"] = 99,
-				["flightTimes"] = { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 }
+				["flightTimes"] = { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+									25, 26, 27, 28, 29, 30, 15, 16, 20, 5, 20, 20 }
 			}
 		}
 	FlightTimer.TAXIMAP_OPENED()
 	FlightTimer.TakeTaxiNode(2)
-	print( UnitOnTaxi( "player" ) )  -- ROFL..  I never actually got to testing this part!
-	assertEquals( 10, #FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes )
+	FlightTimer.flightStart = time() - 22
+	FlightTimer.OnUpdate()
+
+	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[20], "5 seconds should be removed" )
+	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[0], "Oldest should be removed for size" )
+end
+function test.testPruneFlightTimes_02()
+	-- history
+	FlightTimer.debug = true
+	FlightTimer_flightTimes["Stormwind"] = {
+			["Rebel Camp"] = {
+				["flights"] = 120,
+				["flightTime"] = 99,
+				["flightTimes"] = { [1635631132] = 135,  [2] = 130,
+									[1634779148] = 57,   [4] = 135,
+									[1635210020] = 135,  [6] = 136,
+									[1633843640] = 136,  [8] = 134,
+									[1633493019] = 135,  [10] = 136,
+									[1634786005] = 136,  [12] = 136,
+									[1635306258] = 136,  [14] = 135,
+									[1635038053] = 50,   [16] = 135,
+									[1635226762] = 136,  [18] = 136,
+									[1635210000] = 5,    [20] = 135,
+				}
+			}
+		}
+	FlightTimer.TAXIMAP_OPENED()
+	FlightTimer.TakeTaxiNode(2)
+	FlightTimer.flightStart = time() - 135
+	FlightTimer.OnUpdate()
+	for k,v in pairs( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes ) do
+		print( "--"..k..", "..v)
+	end
+	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[1635210000], "5 seconds should be removed" )
+	assertIsNil( FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[1635038053], "50 seconds should be removed" )
+	assertEquals( 130, FlightTimer_flightTimes["Stormwind"]["Rebel Camp"].flightTimes[2], "Oldest should not be deleted." )
+
 end
 
 test.run()
