@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
 -- Date    :  $Date:$
--- Revision:  1.3
+-- Revision:  9.0.1.0-1-g972430b
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -9,6 +9,8 @@
 -- This is not intended to replace WoWBench, but to provide a stub structure for
 --     automated unit tests.
 
+settings = {
+}
 actionLog = {
 }
 -- append actions to the log to track actions that may not have an other sideeffects.
@@ -108,14 +110,14 @@ TaxiNodes = {
 	{["name"] = "Ironforge", ["type"] = "NONE", ["hops"] = 1, ["cost"]=1000},
 }
 Currencies = {
-	["1"] = { ["name"] = "Currency Token Test Token 4", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = false, ["link"] = "|cffffffff|Hcurrency:1|h[Currency Token Test Token 4]|h|r"},
-	["384"] = { ["name"] = "Dwarf Archaeology Fragment", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 200, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:384:0:0:0:0:0:0:0:80:0:0|h[Dwarf Archaeology Fragment]|h|r"},
-	["390"] = { ["name"] = "Conquest", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["392"] = { ["name"] = "Honor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["395"] = { ["name"] = "Justice",  ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["396"] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["402"] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
-	["703"] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
+	[1] = { ["name"] = "Currency Token Test Token 4", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = false, ["link"] = "|cffffffff|Hcurrency:1|h[Currency Token Test Token 4]|h|r"},
+	[384] = { ["name"] = "Dwarf Archaeology Fragment", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 200, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:384:0:0:0:0:0:0:0:80:0:0|h[Dwarf Archaeology Fragment]|h|r"},
+	[390] = { ["name"] = "Conquest", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[392] = { ["name"] = "Honor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[395] = { ["name"] = "Justice",  ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[396] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[402] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
+	[703] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
 }
 ArchaeologyCurrencies = {"999",}
 MerchantInventory = {
@@ -126,7 +128,7 @@ MerchantInventory = {
 	{["id"] = "49927", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1,
 		["currencies"] = {{["id"] = "49916", ["type"] = "item", ["quantity"] = 1},}},  -- Lovely Charm Bracelet
 	{["id"] = "74661", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1,
-		["currencies"] = {{["id"] = "402", ["type"] = "currency", ["quantity"] = 1},}},
+		["currencies"] = {{["id"] = 402, ["type"] = "currency", ["quantity"] = 1},}},
 	{["id"] = "85216", ["cost"] = 2500, ["quantity"] = 1, ["isUsable"] = nil},
 }
 TradeSkillItems = {
@@ -806,26 +808,6 @@ function GetBagSlotFlag( bagId, filterFlagCheck )
 	-- returns true if the filterFlagCheck matches the bag's filterFlag
 	return true
 end
-function GetCurrencyInfo( id ) -- id is integer, currencyLink, currencyString
-	-- integer, link, "currency:###"
-	-- http://wowprogramming.com/docs/api/GetCurrencyInfo
-	-- returns name, amount, texturePath, earnedThisWeek, weeklyMax, totalMax, isDiscovered
-	id = tostring(id)
-	if Currencies[id] then
-		local c = Currencies[id]
-		return c["name"], (myCurrencies[id] or 0), "", 0, c["weeklyMax"], c["totalMax"], true
-	end
-end
-function GetCurrencyLink( id )
-	id = tostring(id)
-	if Currencies[id] then
-		return Currencies[id].link
-	end
-end
-function GetCurrencyListSize()
-	-- @TODO
-	return #Currencies
-end
 function GetEquipmentSetItemIDs( setName )
 	-- http://wowprogramming.com/docs/api/GetEquipmentSetItemIDs
 	-- Returns a table of item IDs keyed by slotID of items in the equipmentSet
@@ -1054,6 +1036,10 @@ function GetNumRoutes( nodeId )
 	-- http://wowprogramming.com/docs/api/GetNumRoutes
 	-- returns numHops
 	return TaxiNodes[nodeId].hops
+end
+function GetNumSavedInstances()
+	-- @TODO: Research this
+	return 0
 end
 -- GetNumTradeSkills is deprecated
 --function GetNumTradeSkills( )
@@ -1396,6 +1382,12 @@ function TaxiNodeGetType( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeGetType
 	return TaxiNodes[nodeId].type
 end
+function setUnitOnTaxi( valueIn )
+	settings.unitOnTaxi = valueIn
+end
+function UnitOnTaxi()
+	return settings.unitOnTaxi or false
+end
 function UnitAffectingCombat( unit )
 	return false
 end
@@ -1565,6 +1557,28 @@ C_MountJournal.critters = { ["mount"] = {}, ["critter"] = {} }
 
 function C_MountJournal.GetMountIDs( )
 	return {}
+end
+
+----------
+-- C_CurrencyInfo
+----------
+C_CurrencyInfo = {}
+function C_CurrencyInfo.GetCurrencyInfo( id ) -- id is integet
+	-- returns a table:
+	-- 		localName, isHeader, isHeaderExpanded, isTypeUnused, isShowInBackpack, quantity, iconFileID, maxQuantity,
+	--      canEarnPerWeek, quantityEarnedThisWeek, isTradeable, quality, maxWeeklyQuantity, discovered
+	local ci = Currencies[id]
+	if ci then
+		return { ["localName"]=ci.name, ["isHeader"]=false, ["isHeaderExpanded"]=false, ["isTypeUnused"]=false,
+				["isShowInBackpack"]=false, ["quantity"]=(myCurrencies[id] or 0), ["discovered"] = ci.isDiscovered,
+				["canEarnPerWeek"]=ci.weeklyMax, ["maxQuantity"]=ci.totalMax, ["quantityEarnedThisWeek"]=0 }
+				-- @TODO: fix the quantityEarnedThisWeek to come from myCurrencies
+	end
+end
+function C_CurrencyInfo.GetCurrencyLink( id )
+	if Currencies[id] then
+		return Currencies[id].link
+	end
 end
 
 -----------------------------------------
