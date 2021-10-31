@@ -139,10 +139,10 @@ function FlightTimer.OnUpdate(arg1)
 
 		elseif not UnitOnTaxi( "player" ) and ( time()-FlightTimer.flightStart > 2 ) then
 			-- Getting off the Taxi, with a flight time of more than 2 seconds
-			local ft = FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime
+			local eft = FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime
 			local cft = time() - FlightTimer.flightStart
-			if ft then
-				FlightTimer.Print("Landed after "..SecondsToTime( cft )..". Expected flighttime: "..SecondsToTime(ft));
+			if eft then
+				FlightTimer.Print("Landed after "..SecondsToTime( cft )..". Expected flighttime: "..SecondsToTime(eft));
 				PlaySound( FlightTimer.landingWarningSound )
 			end
 			if not FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes then
@@ -153,7 +153,7 @@ function FlightTimer.OnUpdate(arg1)
 			FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes[time()] = cft
 
 			-- Calculate average flight times
-			local fts, ftc = ft, 1
+			local fts, ftc = eft, 0
 			local ftkeys = {}
 			for k,v in pairs( FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes ) do
 				ftkeys[ftc] = k
@@ -162,19 +162,36 @@ function FlightTimer.OnUpdate(arg1)
 			end
 			local fta = math.floor( fts / ftc )
 			FlightTimer.Debug( "Average FT is "..SecondsToTime( fta ) )
-			-- prune old flight times
-			if( ftc > 10 ) then
-				table.sort( ftkeys )
-				for n=1, ftc-10 do
-					FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes[ ftkeys[n] ] = nil
+			if( ftc > 20 ) then
+				-- Calcuate std dev
+				local stddevsum = 0
+				for k,v in pairs( FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes ) do
+					stddevsum = stddevsum + math.pow( v-fta, 2)
+				end
+				local stddev = math.pow( stddevsum/ftc, 0.5)
+				ftc = 0
+				-- Prune based on value
+				for k,v in pairs( FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes ) do
+					if (math.abs(fta-v) > stddev*2) then
+						FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes[k] = nil
+					else
+						ftc = ftc + 1
+					end
+				end
+				-- prune old flight times
+				if( ftc > 20 ) then
+					table.sort( ftkeys )
+					for n=0, ftc-20 do
+						FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes[ ftkeys[n] ] = nil
+					end
 				end
 			end
 			-- save the average
 			FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime = fta
 			-- Hide bar
-			FlightTimer_FlightTimeBarText:Hide();
-			FlightTimer_FlightTimeBar:Hide();
-			FlightTimer.flightStart = nil;
+			FlightTimer_FlightTimeBarText:Hide()
+			FlightTimer_FlightTimeBar:Hide()
+			FlightTimer.flightStart = nil
 		end
 	end
 end
@@ -203,7 +220,7 @@ function FlightTimer.TakeTaxiNode( index, ... )  -- hooked into when a Taxi is t
 					or 1
 	end
 
-	FlightTimer.flightStart = time();
+	FlightTimer.flightStart = time()
 	FlightTimer.flightETA = FlightTimer.flightStart +
 			FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTime;
 	if (FlightTimer_options.TaxiWarning) then
