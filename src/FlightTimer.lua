@@ -162,7 +162,7 @@ function FlightTimer.OnUpdate(arg1)
 			end
 			local fta = math.floor( fts / ftc )
 			FlightTimer.Debug( "Average FT is "..SecondsToTime( fta ) )
-			if( ftc > 20 ) then
+			if( ftc > 10 ) then
 				-- Calcuate std dev
 				local stddevsum = 0
 				for k,v in pairs( FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes ) do
@@ -179,9 +179,9 @@ function FlightTimer.OnUpdate(arg1)
 					end
 				end
 				-- prune old flight times
-				if( ftc > 20 ) then
+				if( ftc > 10 ) then
 					table.sort( ftkeys )
-					for n=0, ftc-20 do
+					for n=0, ftc-10 do
 						FlightTimer_flightTimes[FlightTimer.startNode][FlightTimer.endNode].flightTimes[ ftkeys[n] ] = nil
 					end
 				end
