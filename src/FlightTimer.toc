@@ -1,5 +1,5 @@
+## Title: FlightTimer v@VERSION@
 ## Interface: @INTERFACE@
-## Title: FlightTimer
 ## Notes: Times taxi flights @VERSION@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
