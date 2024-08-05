@@ -47,7 +47,7 @@ function test.testOnLoad_NameSet()
 	assertEquals( "testPlayer", FlightTimer.name )
 end
 function test.testOnLoad_RealmSet()
-	assertEquals( "testRealm", FlightTimer.realm )
+	assertEquals( "Test Realm", FlightTimer.realm )
 end
 function test.testOnLoad_FactionSet()
 	assertEquals( "Alliance", FlightTimer.faction )
