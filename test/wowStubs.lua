@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  August 5 2024
--- Revision:  9.4.3-7-geed59e4
+-- Date    :  August 13 2024
+-- Revision:  9.4.3-17-g11678c7
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -283,6 +283,19 @@ FactionInfo = {
 		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
 		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = true,
 	},
+	{
+		["factionID"] = 1282, ["name"] = "Fish Fellrend", ["description"] = "", ["reaction"] = 5, ["currentReactionThreshold"] = 0,
+		["nextReactionThreshold"] = 4000, ["currentStanding"] = 0, ["atWarWith"] = false, ["canToggleAtWar"] = true,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = true,
+	},
+	{
+		["factionID"] = 2010, ["name"] = "Max", ["description"] = "", ["reaction"] = 8, ["currentReactionThreshold"] = 42000,
+		["nextReactionThreshold"] = 42000, ["currentStanding"] = 42000, ["atWarWith"] = false, ["canToggleAtWar"] = true,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = true,
+	},
+
 }
 --Auras
 -- IIRC (Look this up) Auras are index based, use an index based system
@@ -492,7 +505,7 @@ Units = {
 		["faction"] = {"Alliance", "Alliance"},
 		["name"] = "testPlayer",
 		["race"] = "Human",
-		["realm"] = "testRealm",
+		["realm"] = "Test Realm",
 		["realmRelationship"] = 1,  -- same realm
 		["sex"] = 3,
 		["currentHealth"] = 100000,
@@ -605,11 +618,23 @@ end
 EditBox = {
 		["SetText"] = function(self,text) self.text=text; end,
 		["SetCursorPosition"] = function(self,pos) self.cursorPosition=pos; end,
-
 }
 function CreateEditBox( name, ... )
 	me = {}
 	for k,v in pairs(EditBox) do
+		me[k] = v
+	end
+	me.name = name
+	return me
+end
+Button = {
+	["enabled"] = true,
+	["SetEnabled"] = function(self,enabled) self.enabled = enabled; end,
+	["IsEnabled"] = function(self) return self.enabled; end,
+}
+function CreateButton( name, ... )
+	me = {}
+	for k,v in pairs(Button) do
 		me[k] = v
 	end
 	me.name = name
@@ -849,11 +874,6 @@ function GetComparisonStatistic( achievementID )
 	-- returns: string - the value of the requested statistic
 	return Achievements[achievementID].value
 end
-function GetAddOnMetadata( addon, field )
-	-- returns addonData[field] for 'addon'
-	-- local addonData = { ["version"] = "1.0", }
-	return addonData[field]
-end
 function GetCategoryList()
 	-- http://www.wowwiki.com/API_GetCategoryList
 	-- Returns a table of achievement categories
@@ -871,20 +891,20 @@ function GetCategoryNumAchievements( catID )
 	-- numIncomplete: Number of incomplete achievements
 	return 5,0,5
 end
-function GetCoinTextureString( copperIn, fontHeight )
--- simulates the Wow function:  http://www.wowwiki.com/API_GetCoinTextureString
--- fontHeight is ignored for now.
-	if copperIn then
-		-- cannot return exactly what WoW does, but can make a simular string
-		local gold = math.floor(copperIn / 10000); copperIn = copperIn - (gold * 10000)
-		local silver = math.floor(copperIn / 100); copperIn = copperIn - (silver * 100)
-		local copper = copperIn
-		return( (gold and gold.."G ")..
-				(silver and silver.."S ")..
-				(copper and copper.."C"))
-	end
-end
 
+C_AddOns = {}
+function C_AddOns.GetAddOnMetadata( addon, field )
+	-- returns addonData[field] for 'addon'
+	-- local addonData = { ["version"] = "1.0", }
+	return addonData[field]
+end
+function C_AddOns.GetNumAddOns()
+	return 1
+end
+function C_AddOns.LoadAddOn( addonName )
+end
+function C_AddOns.DisableAddOn( addonName, playerName )
+end
 
 C_Container = {}
 C_Container.SortBagsRightToLeft = false -- this is normal
@@ -992,7 +1012,7 @@ function GetInventorySlotInfo( slotName )
 		end
 	end
 end
-function GetItemCount( itemID, includeBank )
+function GetItemCount( itemID, includeBank, includeUses, includeReagentBank, includeAccountBank )
 	-- print( itemID, myInventory[itemID] )
 	return myInventory[itemID] or 0
 end
@@ -1167,7 +1187,8 @@ end
 function GetPlayerInfoByGUID( playerGUID )
 	-- http://wowprogramming.com/docs/api/GetPlayerInfoByGUID
 	-- localClass, englishClass, localRace, englishRace, gender, name, realm = GetPlayerInfoByGUID( playerGUID )
-	return "Warlock", "Warlock", "Human", "Human", 3, "testPlayer", "testRealm"
+	-- @TODO: Affirm this
+	return "Warlock", "Warlock", "Human", "Human", 3, "testPlayer", "Test Realm"
 end
 function GetQuestResetTime()
 	-- @TODO: Find out more about this
@@ -1329,8 +1350,6 @@ function GetFramerate()
 end
 function IsResting()
 	return true
-end
-function LoadAddOn()
 end
 function NumTaxiNodes()
 	-- http://www.wowwiki.com/API_NumTaxiNodes
@@ -1536,13 +1555,12 @@ end
 function UnitAffectingCombat( unit )
 	return false
 end
-function UnitAura( unit, index, filter )
+C_UnitAuras = {}
+function C_UnitAuras.GetAuraDataByIndex( unit, index )
 	-- @TODO: Look this up to get a better idea of what this function does.
-	-- Returns the aura name
-	-- unit, [index] [,filter]
-	-- Returns True or nil
+	-- Returns an auraData table
 	if( UnitAuras[unit] and UnitAuras[unit][index] ) then
-		return UnitAuras[unit][index].name
+		return UnitAuras[unit][index]
 	end
 end
 function UnitClass( who )
@@ -1681,6 +1699,12 @@ function GetEquipmentSetInfoByName( nameIn )
 		end
 	end
 end
+function CanMerchantRepair()
+	return true
+end
+function CanGuildBankRepair()
+	return true
+end
 
 --http://wow.gamepedia.com/Patch_7.0.3/API_changes
 
@@ -1712,6 +1736,19 @@ end
 -- C_CurrencyInfo
 ----------
 C_CurrencyInfo = {}
+function C_CurrencyInfo.GetCoinTextureString( copperIn, fontHeight )
+-- simulates the Wow function:  http://www.wowwiki.com/API_GetCoinTextureString
+-- fontHeight is ignored for now.
+	if copperIn then
+		-- cannot return exactly what WoW does, but can make a simular string
+		local gold = math.floor(copperIn / 10000); copperIn = copperIn - (gold * 10000)
+		local silver = math.floor(copperIn / 100); copperIn = copperIn - (silver * 100)
+		local copper = copperIn
+		return( (gold and gold.."G ")..
+				(silver and silver.."S ")..
+				(copper and copper.."C"))
+	end
+end
 function C_CurrencyInfo.GetCurrencyInfo( id ) -- id is integet
 	-- returns a table:
 	-- 		localName, isHeader, isHeaderExpanded, isTypeUnused, isShowInBackpack, quantity, iconFileID, maxQuantity,
@@ -1841,6 +1878,19 @@ function C_ToyBox.IsToyUsable( id )
 end
 
 ----------
+-- Settings
+----------
+Settings = {}
+function Settings.OpenToCategory( id )
+end
+function Settings.RegisterCanvasLayoutCategory( frame, name )
+	-- return a category structure
+	return ( {["GetID"] = function() return 234; end} )
+end
+function Settings.RegisterAddOnCategory(category)
+end
+
+----------
 -- C_Reputation
 ----------
 C_Reputation = {}
@@ -1853,6 +1903,20 @@ function C_Reputation.GetFactionDataByID( idIn )
 end
 function C_Reputation.GetFactionParagonInfo()
 end
+
+----------
+-- C_GossipInfo
+----------
+C_GossipInfo = {}
+function C_GossipInfo.GetFriendshipReputation( idIn )
+	return {["maxRep"]=0, ["text"]="", ["reversedColor"]=false, ["reaction"]="", ["standing"]=0, ["reactionThreshold"]=0, ["friendshipFactionID"]=0, ["textrue"]=0}
+end
+
+----------
+-- C_Item
+----------
+C_Item = {}
+C_Item.GetItemCount = GetItemCount
 
 ----------
 -- Menu

@@ -1,5 +1,8 @@
-FLIGHTTIMER_MSG_VERSION = GetAddOnMetadata("FlightTimer","Version")
-FLIGHTTIMER_MSG_ADDONNAME = "Flight Timer"
+-- FLIGHTTIMER @VERSION@
+FLIGHTTIMER_SLUG, FlightTimer = ...
+FLIGHTTIMER_MSG_ADDONNAME     = C_AddOns.GetAddOnMetadata( FLIGHTTIMER_SLUG, "Title" )
+FLIGHTTIMER_MSG_VERSION       = C_AddOns.GetAddOnMetadata( FLIGHTTIMER_SLUG, "Version" )
+FLIGHTTIMER_MSG_AUTHOR        = C_AddOns.GetAddOnMetadata( STEPS_SLUG, "Author" )
 
 -- Colours
 COLOR_RED = "|cffff0000"
@@ -21,7 +24,6 @@ FlightTimer_options = {
 -- saved data
 FlightTimer_flightTimes = {}
 
-FlightTimer = {}
 FlightTimer.lastUpdate = 0
 FlightTimer.landingWarningFile = "Sound\\Events\\Squire_horn_bb.Wav"
 FlightTimer.landingWarningSound = SOUNDKIT.ALARM_CLOCK_WARNING_1
