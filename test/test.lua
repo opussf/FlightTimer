@@ -1,26 +1,18 @@
 #!/usr/bin/env lua
------------------------------------------
--- Author  :  $Author:$
--- Date    :  $Date:$
--- Revision:  $Revision:$
------------------------------------------
-
-addonData = {
-	['version'] = "1.0",
-}
 
 require "wowTest"
+--myLocale = "esMX"
 
 test.outFileName = "testOut.xml"
 
--- from XML
-FlightTimerFrame = Frame
-FlightTimer_FlightTimeBarText = CreateFontString("FlightTimeBarText")
-FlightTimer_FlightTimeBar = CreateStatusBar("FlightTimeBar")
---
+-- require the file to test
+ParseTOC( "../src/FlightTimer.toc" )
 
-package.path = "../src/?.lua;" .. package.path
-require "FlightTimer"
+-- from XML
+-- FlightTimerFrame = Frame
+-- FlightTimer_FlightTimeBarText = CreateFontString("FlightTimeBarText")
+-- FlightTimer_FlightTimeBar = CreateStatusBar("FlightTimeBar")
+--
 
 function test.before()
 	FlightTimer.OnLoad()
