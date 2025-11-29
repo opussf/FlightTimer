@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  September 27 2024
--- Revision:  9.5-9-g7afefee
+-- Date    :  November 24 2025
+-- Revision:  9.7.1-1-ge9b1efd
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -20,6 +20,12 @@ settings = {
 }
 actionLog = {
 }
+buildInfo = {
+	"11.2.5",       -- version
+	"3255",         -- build
+	"Sep 12 2025",  -- date
+	110205          -- TOC Version
+}
 -- append actions to the log to track actions that may not have an other sideeffects.
 -- record the function calls
 -- [1] = "DoEmote(....)""
@@ -30,6 +36,14 @@ chatLog = {
 
 local itemDB = {
 }
+
+_G["GUILD"] = "Guild"
+_G["INSTANCE"] = "instance"
+_G["PARTY"] = "Party"
+_G["RAID"] = "Raid"
+_G["SAY"] = "Say"
+_G["WHISPER"] = "Whisper"
+_G["YELL"] = "Yell"
 
 -- simulate an internal inventory
 -- myInventory = { ["9999"] = 52, }
@@ -66,6 +80,8 @@ myStatistics = {
 	[60] = 42  -- 60 = deaths
 }
 myLocale = "enUS"
+myZone = {["Zone"] = "Thing", ["Sub"] = "Sub"}
+isInCombat = false
 
 registeredPrefixes = {}
 
@@ -128,6 +144,8 @@ Currencies = {
 	[396] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
 	[402] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
 	[703] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
+	[824] = { ["name"] = "Garrison Resources", ["texturePath"] = "", ["quantity"] = 100 },
+	[3044]= { ["name"] = "Engineering Concentration", ["totalMax"] = 1000}
 }
 ArchaeologyCurrencies = {"999",}
 MerchantInventory = {
@@ -225,10 +243,11 @@ FACTION_STANDING_LABEL5 = "Friendly"
 FACTION_STANDING_LABEL6 = "Honored"
 FACTION_STANDING_LABEL7 = "Revered"
 FACTION_STANDING_LABEL8 = "Exalted"
-FACTION_STANDING_INCREASED = "Reputation with %s increased by %d"
-FACTION_STANDING_DECREASED = "Reputation with %s decreased by %d"
-FACTION_STANDING_INCREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s increased by %d"
-FACTION_STANDING_DECREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s decreased by %d"
+FACTION_STANDING_INCREASED = "Reputation with %s increased by %d."
+FACTION_STANDING_DECREASED = "Reputation with %s decreased by %d."
+FACTION_STANDING_INCREASED_GUARDIAN = "%s has gained %d guardian experience points."
+FACTION_STANDING_INCREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s increased by %d."
+FACTION_STANDING_DECREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s decreased by %d."
 
 COMBATLOG_OBJECT_AFFILIATION_OUTSIDER = 8
 COMBATLOG_XPGAIN_FIRSTPERSON = "%s dies, you gain %d experience."
@@ -454,13 +473,18 @@ Frame = {
 		["GetHeight"] = function(self) return( self.height ); end,
 		["SetMovable"] = function(self, value) self.movable = value end,
 		["CreateFontString"] = function(self, ...) return(CreateFontString(...)) end,
-		["SetSize"] = function(self, x, y) end,
+		["CreateTexture"] = function(self, name, ...) return(CreateTexture(...)) end,
+		["SetSize"] = function(self, x, y) self.width=x; self.height=y; end,
+		["GetSize"] = function(self) return self.width,self.height end,
 		["ClearAllPoints"] = function(self) self.points={}; end,
 		["GetPoint"] = function(self) end,
 		["GetNumPoints"] = function(self) end,
+		["SetAllPoints"] = function(self) end,
+		["StopMovingOrSizing"] = function(self) end,
 
 		["SetMinMaxValues"] = function(self, min, max) self.min=min; self.max=max; end,
 		["SetValue"] = function(self, value) self.value=value end,
+		["GetValue"] = function(self) return self.value end,
 		["SetStatusBarColor"] = function() end,
 		["SetScript"] = function(self, event, func) end,
 		["SetAttribute"] = function() end,
@@ -470,6 +494,15 @@ Frame = {
 		["GetText"] = function(self) return( self.textValue ); end,
 		["SetFrameLevel"] = function(self) end,
 		["SetAlpha"] = function(self, value) end,
+		["GetNumLines"] = function(self)
+				if self.textValue == "" then return 0 end
+				local _, count = self.textValue:gsub("\n", "")
+				if self.textValue:sub(-1) == "\n" then
+					return count
+				else
+					return count + 1
+				end
+			end,
 }
 FrameGameTooltip = {
 		["HookScript"] = function( self, callback ) end,
@@ -511,6 +544,7 @@ Units = {
 		["sex"] = 3,
 		["currentHealth"] = 100000,
 		["maxHealth"] = 123456,
+		["creatureTypeID"] = 7,
 	},
 	["sameRealmUnit"] = {
 		["class"] = "Warrior",
@@ -522,6 +556,7 @@ Units = {
 		["realm"] = "testPlayer",
 		["realmRelationship"] = 1,
 		["sex"] = 2,
+		["creatureTypeID"] = 7,
 	},
 	["coalescedRealmUnit"] = {
 		["class"] = "Monk",
@@ -532,6 +567,7 @@ Units = {
 		["race"] = "Pandarian",
 		["realm"] = "coalescedRealm",
 		["realmRelationship"] = 2,
+		["creatureTypeID"] = 7,
 	},
 	["connectedRealmUnit"] = {
 		["class"] = "Mage",
@@ -541,6 +577,7 @@ Units = {
 		["name"] = "connectedUnit",
 		["realm"] = "connectedRealm",
 		["realmRelationship"] = 3,
+		["creatureTypeID"] = 7,
 	},
 	["mouseover"] = {
 		["class"] = "Priest",
@@ -551,8 +588,12 @@ Units = {
 		["race"] = "Dwarf",
 		["realm"] = "mouserealm",
 		["sex"] = 1,
+		["creatureTypeID"] = 7,
 	},
-
+}
+UnitCreatureTypes = { "Beast", "Dragonkin", "Demon", "Elemental", "Giant",
+		"Undead", "Humanoid", "Critter", "Mechanical", "Not specified",
+		"Totem", "Non-combat Pet", "Gas Cloud", "Wild Pet", "Aberration"
 }
 function CreateFrame( frameType, frameName, parentFrame, inheritFrame )
 --	print("CreateFrame: needing a new frame of type: "..(frameType or "nil"))
@@ -581,8 +622,8 @@ function CreateFontString( name, ... )
 		FontString[k] = v
 	end
 	FontString.text = ""
-	FontString["SetText"] = function(self,text) self.text=text; end
-	FontString["GetText"] = function(self) return(self.text); end
+	FontString["SetText"] = function(self,text) self.textValue=text; end
+	FontString["GetText"] = function(self) return(self.textValue); end
 	FontString.name=name
 	--print("FontString made?")
 	return FontString
@@ -602,6 +643,7 @@ function CreateSlider( name, ... )
 	end
 	Slider.name=name
 	Slider[name.."Text"] = CreateFontString(name.."Text")
+	Slider.GetValue = function() return 2  end
 	return Slider
 end
 CheckButton = {
@@ -616,8 +658,8 @@ function CreateCheckButton( name, ... )
 	me[name.."Text"] = CreateFontString(name.."Text")
 	return me
 end
-EditBox = {
-		["SetText"] = function(self,text) self.text=text; end,
+FrameEditBox = {
+		["SetText"] = function(self,text) self.textValue=text; end,
 		["SetCursorPosition"] = function(self,pos) self.cursorPosition=pos; end,
 		["HighlightText"] = function(self,start,last) end,
 		["IsNumeric"] = function() end,
@@ -643,7 +685,27 @@ function CreateButton( name, ... )
 	me.name = name
 	return me
 end
-
+Texture = {
+	["SetTexture"] = function(self) end,
+}
+function CreateTexture( name, ... )
+	me = {}
+	for k,v in pairs(Frame) do
+		me[k] = v
+	end
+	for k,v in pairs(Texture) do
+		me[k] = v
+	end
+	me.name=name
+	return me
+end
+function UIDropDownMenu_Initialize( self )
+end
+function UIDropDownMenu_JustifyText( self, justify )
+end
+function UIDropDownMenu_GetText( self )
+	return ""
+end
 function ChatFrame_AddMessageEventFilter()
 end
 
@@ -659,6 +721,7 @@ UIErrorsFrame={ ["AddMessage"] = function( self, msg )
 		)
 	end, }
 WeeklyRewardsFrame = CreateFrame()
+BankFrame = CreateFrame()
 
 -- stub some external API functions (try to keep alphabetical)
 function BuyMerchantItem( index, quantity )
@@ -721,8 +784,14 @@ function CombatLogGetCurrentEventInfo()
 	-- set CombatLogCurrentEventInfo = {} to return specific data.
 	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
 	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
-
 	return unpack( CombatLogCurrentEventInfo )
+end
+function IterateCombatLog( file, text, realtime )
+	-- Support function
+	-- file: file to parse for data,
+	-- text: text instead
+	-- realtime: simulate delays between events based on recorded timestamp
+
 
 end
 function CombatTextSetActiveUnit( who )
@@ -859,6 +928,9 @@ function GetAchievementNumCriteria( achievementID )
 		return #Achievements[achievementID]["criteria"]
 	end
 end
+function GetBuildInfo()
+	return table.unpack(buildInfo)
+end
 function GetCurrentRegion()
 	-- @TODO: find region info
 	return 1
@@ -870,6 +942,9 @@ function GetStatistic( statID )
 	-- https://wow.gamepedia.com/API_GetStatistic
 
 	return Achievements[statID].value
+end
+function GetCombatRating( ratingEnum )
+	return 2734
 end
 function GetComparisonStatistic( achievementID )
 	-- https://wowwiki.fandom.com/wiki/API_GetComparisonStatistic
@@ -908,9 +983,15 @@ function C_AddOns.LoadAddOn( addonName )
 end
 function C_AddOns.DisableAddOn( addonName, playerName )
 end
+function C_AddOns.IsAddOnLoaded( addonName )
+	-- assue it is, modify later
+	return true
+end
 
 C_Container = {}
 C_Container.SortBagsRightToLeft = false -- this is normal
+function C_Container.GetContainerItemID( bagId, slotId )
+end
 function C_Container.GetContainerItemInfo( bagId, slotId )
 end
 function C_Container.GetContainerItemLink( bagId, slotId )
@@ -1125,12 +1206,18 @@ Returns:
 ]]
 	return "Dwarf", "", 384, 0, 100, 200
 end
+
+-- 7, Mining
+-- 8, Engineering
+-- 10, arch
+-- 9, Fishing
+-- 6, Cooking
 function GetProfessions()
 	-- prof1, prof2, archaeology, fishing, cooking, firstAid = GetProfessions();
 	return 5, 6, 7, 8, 9
 end
 ProfessionInfo = {
-	[5] = { "prof1", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism prof1" },
+	[5] = { "Engineering", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Khaz Algar Engineering" },
 	[6] = { "prof2", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism prof2" },
 	[7] = { "Archaeology", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism Arch" },
 	[8] = { "Fishing", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism Fishing" },
@@ -1176,9 +1263,25 @@ function GetNumRoutes( nodeId )
 	-- returns numHops
 	return TaxiNodes[nodeId].hops
 end
+mySavedInstances = {}
+-- mySavedInstances = { { "raidName", id, secondsUntilLockResets, difficulty(number),
+--      isLocked(bool), isExtended(bool), instanceIDMostSig?(number), isRaid(bool),
+--      maxPlayers(number), "difficulty", numEncounters(number), encounterProgress(number),
+--      {{bossName, fileDataID, isKilled, unknown}, {}, ...} }, {}, ... }
 function GetNumSavedInstances()
-	-- @TODO: Research this
-	return 0
+	-- https://addonstudio.org/wiki/WoW:API_GetNumSavedInstances
+	--     numInstances (Number) - number of instances saved to, zero if none
+	-- See GetSavedInstanceInfo
+	return #mySavedInstances
+end
+function GetSavedInstanceInfo( index )
+	-- https://addonstudio.org/wiki/WoW:API_GetSavedInstanceInfo
+	-- name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress = GetSavedInstanceInfo(index)
+	-- add the above info as a table to mySavedInstances
+	return table.unpack( mySavedInstances[index] )
+end
+function GetSavedInstanceEncounterInfo( raidIndex, bossIndex )
+	return table.unpack( mySavedInstances[raidIndex][13][bossIndex] )
 end
 -- GetNumTradeSkills is deprecated
 --function GetNumTradeSkills( )
@@ -1287,6 +1390,12 @@ function GetXPExhaustion()
 	-- TODO:
 	return 3618
 end
+function GetZoneText()
+	return myZone.Zone
+end
+function GetSubZoneText()
+	return myZone.Sub
+end
 function InterfaceOptionsFrame_OpenToCategory()
 end
 function IsInGroup( groupType )
@@ -1324,6 +1433,11 @@ end
 function IsFlying()
 end
 function IsMounted()
+end
+function IsShiftKeyDown()
+end
+function GetCritChance()
+	return 25.42345
 end
 function GetCursorInfo()
 end
@@ -1546,7 +1660,7 @@ function UnitOnTaxi()
 	return settings.unitOnTaxi or false
 end
 function UnitAffectingCombat( unit )
-	return false
+	return isInCombat
 end
 C_UnitAuras = {}
 function C_UnitAuras.GetAuraDataByIndex( unit, index )
@@ -1558,6 +1672,11 @@ function C_UnitAuras.GetAuraDataByIndex( unit, index )
 end
 function UnitClass( who )
 	return Units[who].class, Units[who].classCAPS, Units[who].classIndex
+end
+function UnitCreatureType( who )
+	if Units[who] then
+		return UnitCreatureTypes[Units[who].creatureTypeID], Units[who].creatureTypeID
+	end
 end
 function UnitExists( who )
 	return Units[who] and true or nil
@@ -1573,9 +1692,15 @@ function UnitHealthMax( who )
 	-- http://wowwiki.wikia.com/wiki/API_UnitHealth
 	return Units[who].maxHealth
 end
+function UnitIsPlayer( who )
+	return Units[who] and Units[who].isPlayer or nil
+end
 function UnitFactionGroup( who )
 	-- http://www.wowwiki.com/API_UnitFactionGroup
 	return unpack( Units[who].faction )
+end
+function UnitIsBattlePet( who )
+	return Units[who].isBattlePet
 end
 function UnitIsDeadOrGhost( who )
 end
@@ -1588,7 +1713,9 @@ function UnitLevel( who )
 	return unitLevels[who]
 end
 function UnitName( who )
-	return Units[who].name, Units[who].realm
+	if Units[who] then
+		return Units[who].name, Units[who].realm
+	end
 end
 function UnitPowerMax( who, powerType )
 	-- http://wowwiki.wikia.com/wiki/API_UnitPowerMax
@@ -1609,6 +1736,10 @@ end
 function UnitSex( who )
 	-- 1 = unknown, 2 = Male, 3 = Female
 	return Units[who].sex
+end
+function UnitStat( unitID, statID )
+	stats = { 15, 20, 25, 30 } -- str, agil, stam, int
+	return stats[statID], stats[statID], 0, 0
 end
 function UnitXP( who )
 	return 100
@@ -1637,8 +1768,24 @@ end
 C_TradeSkillUI = {}
 function C_TradeSkillUI.GetAllRecipeIDs()
 	-- returns an array of RecipeIDs
+	return {}
 end
 function C_TradeSkillUI.GetAllRecipeLink(recipeID)
+end
+function C_TradeSkillUI.GetChildProfessionInfos()
+	-- https://warcraft.wiki.gg/wiki/API_C_TradeSkillUI.GetChildProfessionInfo
+	return {
+		{	["profession"] = 8,
+			["professionID"] = 2875,
+			["professionName"] = "Khaz Algar Engineering",
+		},
+	}
+end
+function C_TradeSkillUI.GetConcentrationCurrencyID( professionID )
+	local stuff = {
+		[2875] = 3044
+	}
+	return stuff[professionID]
 end
 function C_TradeSkillUI.GetRecipeInfo(recipeID)
 	--disabled : boolean
@@ -1798,15 +1945,21 @@ myMacros = {
 		table.sort( myMacros.personal, function( l, r ) return( l.name < r.name ); end )
 	end,
 }
+function GetNumMacros()
+	-- return number of global, number of personal
+	return #myMacros.general, #myMacros.personal
+end
 function GetMacroInfo( macroName )
 	-- returns:  macroName, macroIcon, macroText
 	if macroName then
-		local mIndex = GetMacroIndexByName( macroName )
+		local mIndex = tonumber(macroName) or GetMacroIndexByName( macroName )
 		if mIndex ~= 0 then
 			local location = mIndex > 120 and "personal" or "general"
 			mIndex = mIndex>120 and mIndex-120 or mIndex
-			return myMacros[location][mIndex].name, myMacros[location][mIndex].icon, myMacros[location][mIndex].text
-    	end
+			if myMacros[location][mIndex] then
+				return myMacros[location][mIndex].name, myMacros[location][mIndex].icon, myMacros[location][mIndex].text
+			end
+		end
 	end
 end
 function GetMacroIndexByName( macroName )
@@ -1876,6 +2029,158 @@ end
 function C_ToyBox.IsToyUsable( id )
 	return toyList[id] and toyList[id][1]
 end
+function C_ToyBox.PickupToyBoxItem( itemIn )
+	-- http://www.wowwiki.com/API_PickupItem
+	-- itemString is:
+	--   ItemID (Numeric value)
+	--   ItemString (item:#######)
+	--   ItemName ("Hearthstone")
+	--   ItemLink (Full link text as if Shift-Clicking Item)
+	-- Should only pick up an item that you know about. (in bags for now (myInventory) )
+	-- -- Note: Does not pick up an item from equipped inventory
+	-- Not sure what this should do if there is already something on the cursor
+	onCursor={}
+	onCursor['item'] = itemID
+end
+
+----------
+-- Settings
+----------
+Settings = {}
+function Settings.OpenToCategory( id )
+end
+function Settings.RegisterCanvasLayoutCategory( frame, name )
+	-- return a category structure
+	return ( {["GetID"] = function() return 234; end} )
+end
+function Settings.RegisterAddOnCategory(category)
+end
+
+----------
+-- C_Reputation
+----------
+C_Reputation = {}
+function C_Reputation.GetFactionDataByID( idIn )
+	for _, factionData in pairs( FactionInfo ) do
+		if factionData.factionID == idIn then
+			return factionData
+		end
+	end
+end
+function C_Reputation.GetFactionParagonInfo()
+end
+
+----------
+-- C_GossipInfo
+----------
+C_GossipInfo = {}
+function C_GossipInfo.GetFriendshipReputation( idIn )
+	return {["maxRep"]=0, ["text"]="", ["reversedColor"]=false, ["reaction"]="", ["standing"]=0, ["reactionThreshold"]=0, ["friendshipFactionID"]=0, ["textrue"]=0}
+end
+
+----------
+-- C_Item
+----------
+C_Item = {}
+C_Item.GetItemCount = GetItemCount
+
+----------
+-- Menu
+----------
+Menu = {}
+function Menu.ModifyMenu( ... )
+end
+
+----------
+-- C_Timer
+----------
+C_Timer = {}
+function C_Timer.After( seconds, callback )
+	-- just call the callback
+	callback()
+end
+
+----------
+-- C_QuestLog
+----------
+C_QuestLog = {}
+function C_QuestLog.IsQuestFlaggedCompleted( qnum )
+	return ( qnum % 2 == 0 and true or false )
+end
+function C_QuestLog.GetTitleForQuestID( qnum )
+	return "Test Quest"
+end
+
+----------
+-- C_TaskQuest
+----------
+C_TaskQuest = {}
+function C_TaskQuest.GetQuestInfoByQuestID( qnum )
+end
+
+----------
+-- C_ClassTalents
+----------
+C_ClassTalents = {}
+function C_ClassTalents.GetActiveConfigID()
+end
+
+----------
+-- C_Traits
+----------
+C_Traits = {}
+function C_Traits.GetConfigInfo( id )
+	return {["ID"] = 13659962, ["name"] = "Holy", ["treeIDs"] = {790}, ["type"] = 1, ["usesSharedActionBars"] = false}
+end
+function C_Traits.GenerateImportString( configID )
+	return "someReallyLongString"
+end
+
+----------
+-- PlayerUtil
+----------
+PlayerUtil = {}
+function PlayerUtil.GetCurrentSpecID()
+	return {65, "Holy", "Desc", 135920, "HEALER", 4}
+end
+
+----------
+-- C_PlayerInfo
+----------
+C_PlayerInfo = {}
+function C_PlayerInfo.GetPlayerMythicPlusRatingSummary( unitStr )
+	return {["runs"] = {}, ["currentSeasonScore"] = 0 }
+end
+
+----------
+-- C_DateAndTime
+----------
+C_DateAndTime = {}
+-- These functions return a non-lua-normal struct.
+-- year 	number 	The current year (e.g. 2019)
+-- month 	number 	The current month [1-12]
+-- monthDay 	number 	The current day of the month [1-31]
+-- weekday 	number 	The current day of the week (1=Sunday, 2=Monday, ..., 7=Saturday)
+-- hour 	number 	The current time in hours [0-23]
+-- minute 	number 	The current time in minutes [0-59]
+C_DateAndTimeTS = time()  -- set this to control what is returned
+function C_DateAndTime.GetCurrentCalendarTime()
+	-- This is the realm's current time
+	local out = date( "*t", C_DateAndTimeTS )
+	out.monthDay = out.day; out.day = nil
+	out.weekday = out.wday; out.wday = nil
+	out.yday = nil
+	out.isdst = nil
+	out.sec = nil
+	return out
+end
+
+-------
+-- EventRegistry
+-------
+EventRegistry = {}
+function EventRegistry.RegisterCallback( self )
+end
 
 ----------
 -- Settings
@@ -1936,10 +2241,136 @@ end
 -- C_QuestLog
 ----------
 C_QuestLog = {}
-function C_QuestLog.IsQuestFlaggedCompleted()
-	return false
+function C_QuestLog.IsQuestFlaggedCompleted( qnum )
+	return ( qnum % 2 == 0 and true or false )
+end
+function C_QuestLog.GetTitleForQuestID( qnum )
+	return "Test Quest"
+end
+function C_QuestLog.IsOnQuest( qnum )
+	return true
 end
 
+----------
+-- C_TaskQuest
+----------
+C_TaskQuest = {}
+function C_TaskQuest.GetQuestInfoByQuestID( qnum )
+end
+
+----------
+-- C_ClassTalents
+----------
+C_ClassTalents = {}
+function C_ClassTalents.GetActiveConfigID()
+end
+
+----------
+-- C_Traits
+----------
+C_Traits = {}
+function C_Traits.GetConfigInfo( id )
+	return {["ID"] = 13659962, ["name"] = "Holy", ["treeIDs"] = {790}, ["type"] = 1, ["usesSharedActionBars"] = false}
+end
+function C_Traits.GenerateImportString( configID )
+	return "someReallyLongString"
+end
+
+----------
+-- PlayerUtil
+----------
+PlayerUtil = {}
+function PlayerUtil.GetCurrentSpecID()
+	return {65, "Holy", "Desc", 135920, "HEALER", 4}
+end
+
+----------
+-- C_PlayerInfo
+----------
+C_PlayerInfo = {}
+function C_PlayerInfo.GetPlayerMythicPlusRatingSummary( unitStr )
+	return {["runs"] = {}, ["currentSeasonScore"] = 0 }
+end
+
+----------
+-- C_TooltipInfo
+----------
+C_TooltipInfo = {}
+C_TooltipInfo.data = {
+	["target"] = {
+		["lines"] = {
+			{ ["leftText"] = "LeftText" },
+		}
+	}
+}
+function C_TooltipInfo.GetUnit( target )
+	return C_TooltipInfo.data[target]
+end
+
+----------
+-- C_PetJournal
+----------
+C_PetJournal = {}
+C_PetJournal.data = {
+	["summoned"] = {
+		GUID = 12534
+	},
+}
+function C_PetJournal.GetSummonedPetGUID()
+	return C_PetJournal.data.summoned.GUID
+end
+function C_PetJournal.GetPetInfoByPetID( petID )
+	-- speciesID, customName, level, xp, maxXp, displayID, isFavorite, name, icon, petType, creatureID, sourceText, description, isWild, canBattle, tradable, unique, obtainable = C_PetJournal.GetPetInfoByPetID(petID)
+	-- @TODO: Look this up
+	return 0,"CustomPetName",0,0,0,0,0,"PetName"
+end
+
+----------
+-- C_Calendar
+----------
+C_Calendar = {}
+C_Calendar.monthDays = {31,28,31,30,31,30,31,31,30,31,30,31}  -- no.  this is NOT perfect.... This is for testing only
+function C_Calendar.GetMonthInfo(monthOffset)
+	-- returns info about the current month.
+	-- { firstWeekday, numDays, year, month }
+	local isPos = (monthOffset > 0)
+	local out = {}
+	local today = os.date("*t",os.time())  -- this is date's struct
+	today.month = today.month + monthOffset
+
+	while ( today.month < 1 or today.month > 12 ) do
+		today.month = (isPos and today.month-12 or today.month+12)
+		today.year = (isPos and today.year+1 or today.year-1)
+	end
+
+	-- print(monthOffset)
+	-- test.dump(today)
+	-- print("----")
+
+	out = {firstWeekday=1, numDays=C_Calendar.monthDays[today.month], year=today.year, month=today.month}
+	-- test.dump(out)
+	-- print("=====")
+	return out
+end
+function C_Calendar.GetNumDayEvents(monthOffset, day)
+	return 0
+end
+function C_Calendar.OpenCalendar()
+	--
+end
+
+----------
+-- C_Map
+----------
+C_Map = {}
+function C_Map.GetBestMapForUnit( unitStr )
+	return 5
+end
+function C_Map.GetMapInfo( mapID )
+	return { mapID=5, name="map name", parentMapID=0, mapType=1, flags=2 }
+end
+
+-----------------------------------------
 -- A SAX parser takes a content handler, which provides these methods:
 --     startDocument()                 -- called at the start of the Document
 --     endDocument()                   -- called at the end of the Document
@@ -2126,22 +2557,25 @@ function ParseTOC( tocFile, useRequire )
 	local f = io.open( tocFile, "r" )
 	if f then
 		local tocContents = f:read( "*all" )
-		while true do
-			local linestart, lineend, line = string.find( tocContents, "(.-)\n" )
-			if linestart then
-				local lua, luaEnd, luaFile = string.find( line, "([_%a]*)%.lua" )
-				local xml, xmlEnd, xmlFile = string.find( line, "([_%a]*)%.xml" )
-				local hash, hashEnd, hashKey, hashValue = string.find( line, "## ([_%a]*): (.*)" )
-				if( hash ) then
-					addonData[ hashKey ] = hashValue
-				elseif( lua ) then
-					table.insert( tocFileTable, { "lua", luaFile } )
-				elseif( xml ) then
-					table.insert( tocFileTable, { "xml", xmlFile } )
+		for line in tocContents:gmatch("([^\n]*)\n?") do
+			if line ~= "" then
+				local luaFile = line:match("([%w%._%-\\/]+)%.lua")
+				if luaFile then
+					luaFile = luaFile:gsub("\\", "/") -- normalize to forward slashes
 				end
-				tocContents = string.sub( tocContents, lineend+1 )
-			else
-				break
+				local xmlFile = line:match("([%w%._%-\\/]+)%.xml")
+				if xmlFile then
+					xmlFile = xmlFile:gsub("\\", "/") -- normalize to forward slashes
+				end
+				local hashKey, hashValue = line:match("## ([_%a]*): (.*)")
+
+				if hashKey then
+					addonData[hashKey] = string.gsub( hashValue, "[\n\r]", "")
+				elseif luaFile then
+					table.insert(tocFileTable, { "lua", luaFile })
+				elseif xmlFile then
+					table.insert(tocFileTable, { "xml", xmlFile })
+				end
 			end
 		end
 		pathSeparator = string.sub(package.config, 1, 1)
